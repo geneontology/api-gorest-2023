@@ -17,19 +17,26 @@ Parameters:
 
 Globals:
   Function:
+    MemorySize: 128
+    Timeout: 30
     AutoPublishAlias: live
     DeploymentPreference:
       Enabled: true
       Type: Canary10Percent5Minutes
       Role: !Ref CodeDeployRole
+  Api:
+    EndpointConfiguration: EDGE
+    Cors:
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
 
 Resources:
-  HelloWorld:
+  GOREST:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub 'awscodestar-${ProjectId}-lambda-HelloWorld'
+      FunctionName: !Sub 'awscodestar-${ProjectId}-lambda-api-gorest'
       Handler: index.handler
-      Runtime: nodejs16.x
+      Runtime: nodejs14.x
       Environment:
         Variables:
           NODE_ENV: production
@@ -38,16 +45,12 @@ Resources:
         - LambdaExecutionRole
         - Arn
       Events:
-        GetEvent:
+        Proxy:
           Type: Api
           Properties:
-            Path: /
-            Method: get
-        PostEvent:
-          Type: Api
-          Properties:
-            Path: /
-            Method: post
+            Path: /{proxy+}
+            Method: any
+
   LambdaExecutionRole:
     Description: Creating service role in IAM for AWS Lambda
     Type: AWS::IAM::Role
